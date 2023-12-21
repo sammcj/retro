@@ -19,3 +19,9 @@ adb reboot
 ```
 
 ---
+
+My 3D model is a bit of a work in progress, I want to make a case and possibly stand for it.
+
+It's very much alpha quality at the moment but the model and Fusion 360 source files are here: [RG405V/3d](RG405V/3d)
+
+![](RG405V/3d/rg405v-body%20v11.png)
