@@ -2,6 +2,8 @@
 
 ## Anbernic RG405V
 
+### Scripts
+
 [RG405V/gammaOS/fancontrol.sh](RG405V/gammaOS/fancontrol.sh)
 
 A little script to control the fan speed on the RG405V and stops it from randomly spinning up while in standby.
@@ -19,6 +21,8 @@ adb reboot
 ```
 
 ---
+
+### 3D Model
 
 My 3D model is a bit of a work in progress, I want to make a case and possibly stand for it.
 
