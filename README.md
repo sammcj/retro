@@ -2,7 +2,7 @@
 
 ## Anbernic RG405V
 
-[RG405V/gammaos/fancontrol.sh](RG405V/gammaos/fancontrol.sh)
+[RG405V/gammaOS/fancontrol.sh](RG405V/gammaOS/fancontrol.sh)
 
 A little script to control the fan speed on the RG405V and stops it from randomly spinning up while in standby.
 
