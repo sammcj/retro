@@ -14,13 +14,16 @@ Uninstall any other fan-control software such as GOSTools, then install with:
 
 ```shell
 adb root
-adb remount
 adb push fancontrol.sh /data/adb/service.d/fancontrol.sh
 adb shell chmod 755 /data/adb/service.d/fancontrol.sh
 adb reboot
 ```
 
 ---
+
+[RG405V/gammaOS/setup.sh](RG405V/gammaOS/setup.sh)
+
+A script to install the fancontrol.sh script and set some sensible defaults for the RG405V with GammaOS such as setting the wifi sleep policy, disabling stats etc...
 
 ### 3D Model
 
