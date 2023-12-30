@@ -1,14 +1,13 @@
 #!/system/bin/sh
 # Android (GammaOS beta) boot script for RG405V fan control
 # Author: Sam McLeod @sammcj
-# Version: 1.0
+# Version: 1.1
 
 # Install:
 # - adb root
 # - adb push fancontrol.sh /data/adb/service.d/fancontrol.sh
-# - adb shell
-# - chmod 755 /data/adb/service.d/fancontrol.sh
-# - reboot
+# - adb shell chmod 755 /data/adb/service.d/fancontrol.sh
+# - adb reboot
 
 FAN_POWER=/sys/devices/platform/singleadc-joypad/fan_power
 FAN_ENABLE=/sys/devices/platform/pwm-fan/hwmon/hwmon0/pwm_en
