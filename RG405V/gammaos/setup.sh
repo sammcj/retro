@@ -4,6 +4,11 @@
 adb push fancontrol.sh /data/adb/service.d/fancontrol.sh
 adb shell chmod 755 /data/adb/service.d/fancontrol.sh
 
+# Backup settings
+adb shell settings list global >"settings_global_$(date +%Y%m%d_%H%M%S).txt"
+adb shell settings list secure >"settings_secure_$(date +%Y%m%d_%H%M%S).txt"
+adb shell settings list system >"settings_system_$(date +%Y%m%d_%H%M%S).txt"
+
 # Only keep wifi on when sleeping when plugged in
 adb shell settings put global wifi_sleep_policy 1
 
