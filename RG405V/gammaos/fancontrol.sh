@@ -4,50 +4,51 @@
 # Version: 1.0
 
 # Install:
-# adb root
-# adb remount
-# adb push fancontrol.sh /data/adb/service.d/fancontrol.sh
-# adb shell chmod 755 /data/adb/service.d/fancontrol.sh
-# adb reboot
+# - adb root
+# - adb push fancontrol.sh /data/adb/service.d/fancontrol.sh
+# - adb shell
+# - chmod 755 /data/adb/service.d/fancontrol.sh
+# - reboot
 
 FAN_POWER=/sys/devices/platform/singleadc-joypad/fan_power
 FAN_ENABLE=/sys/devices/platform/pwm-fan/hwmon/hwmon0/pwm_en
 FAN_SPEED=/sys/devices/platform/pwm-fan/hwmon/hwmon0/pwm1
 CPU_TEMP=/sys/class/thermal/thermal_zone0/temp
 SPEED_MULTIPLIER=1
+EXIT_SPEED=0
 SLEEP=5
+DEBUG=false
 
 # continue on error
 set +e
 
-echo "Starting fan control script"
+if $DEBUG; then
+  echo "Starting fan control script"
+fi
 
 # Check for any previous instances of this script and kill them
 for pid in $(ps | grep fancontrol.sh | grep -v grep | awk '{print $1}'); do
   if [ "$pid" != "$$" ]; then
+    echo "Killing previous instance of fancontrol.sh with PID ${pid}"
     kill -9 "$pid"
   fi
 done
 
 # Enable fan
-echo 1 >$FAN_POWER
-echo 1 >$FAN_ENABLE
-
-# Cool down during boot
-echo 150 >$FAN_SPEED
-sleep 5
-
-# Then set fan speed to 50% which tells the fan to automatically adjust speed (apparently)
-echo 50 >$FAN_SPEED
+echo 1 $FAN_ENABLE >$FAN_POWER
 
 # Now we run a background loop to check the temperature and adjust the fan speed, if it crashes it will be restarted
 while true; do
+  # If Android is sleeping, set the fan speed to 0 and wait for it to wake up
+  STATE=$(dumpsys power | grep mWakefulness= | awk '{print $1}')
+  if [ "$STATE" != "mWakefulness=Awake" ] && [ "$STATE" != "mWakefulness=Dozing" ]; then
+    echo 0 >$FAN_SPEED
+    sleep 30
+    continue
+  fi
+
   # Get CPU temperature
   temp=$(echo "$(cat ${CPU_TEMP}) / 1000" | bc)
-
-  # Enable the power/pwm if it's not already enabled
-  echo 1 >$FAN_POWER
-  echo 1 >$FAN_ENABLE
 
   # Set the pwm speed for the fan based on the temperature (0 at below 50C, 90 at 70C, 140 at 75C, 250 at or above 85C)
   if [ "$temp" -lt 50 ]; then
@@ -60,25 +61,26 @@ while true; do
     speed=150
   elif [ "$temp" -lt 75 ]; then
     speed=200
-  elif [ "$temp" -lt 120 ]; then
+  elif [ "$temp" -ge 80 ]; then
     speed=250
-  else
-    speed=50
   fi
 
   # Multiply the speed by the optional multiplier
   speed=$((speed * SPEED_MULTIPLIER))
 
   if $DEBUG; then
-    echo "CPU temp: ${temp} C, fan speed: ${speed}"
+    echo "CPU temp: ${temp} C, Fan PWM: ${FAN_SPEED}"
   fi
 
   # Set the fan speed
+  echo 1 >$FAN_POWER
+  echo 1 >$FAN_ENABLE
   echo $speed >$FAN_SPEED
 
-  # Wait 5 seconds
+  # Wait n seconds
   sleep $SLEEP
+
 done
 
-# If the script exits, set the fan to speed 50
-echo 50 >$FAN_SPEED
+# If the script exits, set the fan to speed
+echo $EXIT_SPEED >$FAN_SPEED
