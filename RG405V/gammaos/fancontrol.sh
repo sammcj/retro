@@ -17,7 +17,7 @@ CPU_TEMP=/sys/class/thermal/thermal_zone0/temp
 SPEED_MULTIPLIER=1
 EXIT_SPEED=0
 SLEEP=5
-DEBUG=false
+DEBUG=${DEBUG:-false}
 
 # continue on error
 set +e
@@ -34,9 +34,6 @@ for pid in $(ps | grep fancontrol.sh | grep -v grep | awk '{print $1}'); do
   fi
 done
 
-# Enable fan
-echo 1 $FAN_ENABLE >$FAN_POWER
-
 # Now we run a background loop to check the temperature and adjust the fan speed, if it crashes it will be restarted
 while true; do
   # If Android is sleeping, set the fan speed to 0 and wait for it to wake up
@@ -52,29 +49,38 @@ while true; do
 
   # Set the pwm speed for the fan based on the temperature (0 at below 50C, 90 at 70C, 140 at 75C, 250 at or above 85C)
   if [ "$temp" -lt 50 ]; then
+    enable=0
     speed=0
   elif [ "$temp" -lt 60 ]; then
+    enable=1
     speed=50
   elif [ "$temp" -lt 65 ]; then
+    enable=1
     speed=90
   elif [ "$temp" -lt 70 ]; then
+    enable=1
     speed=150
   elif [ "$temp" -lt 75 ]; then
+    enable=1
     speed=200
   elif [ "$temp" -ge 80 ]; then
+    enable=1
     speed=250
+  else
+    enable=0
+    speed=0
   fi
 
   # Multiply the speed by the optional multiplier
   speed=$((speed * SPEED_MULTIPLIER))
 
   if $DEBUG; then
-    echo "CPU temp: ${temp} C, Fan PWM: ${FAN_SPEED}"
+    echo "CPU temp: ${temp} C, Fan PWM: ${speed}, Fan enabled: ${enable}"
   fi
 
   # Set the fan speed
-  echo 1 >$FAN_POWER
-  echo 1 >$FAN_ENABLE
+  echo $enable >$FAN_POWER
+  echo $enable >$FAN_ENABLE
   echo $speed >$FAN_SPEED
 
   # Wait n seconds
@@ -83,4 +89,11 @@ while true; do
 done
 
 # If the script exits, set the fan to speed
+if [ ${EXIT_SPEED} -gt 0 ]; then
+  echo 1 >$FAN_POWER
+  echo 1 >$FAN_ENABLE
+else
+  echo 0 >$FAN_POWER
+  echo 0 >$FAN_ENABLE
+fi
 echo $EXIT_SPEED >$FAN_SPEED
